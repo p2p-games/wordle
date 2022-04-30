@@ -9,7 +9,7 @@ import (
 func TestNewHeader(t *testing.T) {
 	require := require.New(t)
 
-	h, err := NewHeader("hello", []string{"a", "b", "c", "d", "e"}, "proposal", "peerID", "targetHash")
+	h, err := NewHeader("hello", []string{"a", "b", "c", "d", "e"}, "proposal", "peerID", nil)
 	require.NoError(err)
 
 	require.Equal(&Word{
