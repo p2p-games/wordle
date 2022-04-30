@@ -15,6 +15,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/p2p-games/wordle/wordle"
 	"go.uber.org/fx"
 )
 
@@ -33,6 +34,8 @@ type Node struct {
 	Routing      routing.PeerRouting
 	DataExchange exchange.Interface
 	DAG          format.DAGService
+
+	Wordle *wordle.Service
 
 	start, stop lifecycleFunc
 }

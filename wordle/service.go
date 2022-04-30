@@ -3,6 +3,7 @@ package wordle
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/ipfs/go-datastore"
 	logging "github.com/ipfs/go-log/v2"
@@ -35,7 +36,7 @@ func NewService(host core.Host, ds datastore.Batching, pubsub *pubsub.PubSub) *S
 	}
 }
 
-func (s *Service) Start() error {
+func (s *Service) Start(context.Context) error {
 	err := s.pubsub.RegisterTopicValidator(topic, s.validate)
 	if err != nil {
 		return  err
@@ -47,7 +48,18 @@ func (s *Service) Start() error {
 	}
 
 	s.host.SetStreamHandler(protoID, s.handle)
+	fmt.Println("Started P2P Wordle")
 	return err
+}
+
+func (s *Service) Stop(context.Context) error {
+	s.host.RemoveStreamHandler(protoID)
+	err := s.pubsub.UnregisterTopicValidator(topic)
+	if err != nil {
+		return  err
+	}
+
+	return s.topic.Close()
 }
 
 func (s *Service) handle(stream net.Stream) {
