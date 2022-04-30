@@ -2,17 +2,36 @@ package model
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/multiformats/go-multihash"
 )
 
 type Header struct {
-	Target string
+	Height         int
+	LastHeaderHash multihash.Multihash
 
 	Guess    *Word
 	Proposal *Word
 
 	PeerID string
+}
+
+func (h *Header) Hash() (multihash.Multihash, error) {
+	data, err := json.Marshal(h)
+	if err != nil {
+		return nil, err
+	}
+
+	hash := sha256.New()
+	hash.Write(data)
+	mhash, err := multihash.Encode(hash.Sum(nil), multihash.SHA2_256)
+	if err != nil {
+		return nil, err
+	}
+	return mhash, nil
 }
 
 type Word struct {
@@ -24,7 +43,7 @@ type Char struct {
 	Hash string
 }
 
-func NewHeader(guess string, gSalts []string, proposal, peerID, target string) (*Header, error) {
+func NewHeader(guess string, gSalts []string, proposal, peerID string, target multihash.Multihash) (*Header, error) {
 	var pSalt []string
 	for i := 0; i < len(proposal); i++ {
 		pSalt = append(pSalt, RandomString(30))
@@ -40,9 +59,8 @@ func NewHeader(guess string, gSalts []string, proposal, peerID, target string) (
 	}
 
 	return &Header{
-		Target: target,
-		PeerID: peerID,
-
+		LastHeaderHash: target,
+		PeerID:         peerID,
 		Guess: &Word{
 			Chars: gw,
 		},
