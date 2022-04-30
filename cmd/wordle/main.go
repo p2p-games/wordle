@@ -18,7 +18,6 @@ func init() {
 	fullCmd.AddCommand(
 		cmd.Start(node.Full),
 		cmd.Init(node.Full),
-
 	)
 	rootCmd.AddCommand(
 		lightCmd,
@@ -38,7 +37,7 @@ func run() error {
 }
 
 var rootCmd = &cobra.Command{
-	Use: "wordle [light|full]",
+	Use:  "wordle [light|full]",
 	Args: cobra.NoArgs,
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
@@ -46,7 +45,7 @@ var rootCmd = &cobra.Command{
 }
 
 var lightCmd = &cobra.Command{
-	Use: "light",
+	Use:  "light",
 	Args: cobra.NoArgs,
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
@@ -54,7 +53,7 @@ var lightCmd = &cobra.Command{
 }
 
 var fullCmd = &cobra.Command{
-	Use: "full",
+	Use:  "full",
 	Args: cobra.NoArgs,
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,

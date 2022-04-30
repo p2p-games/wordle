@@ -10,6 +10,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	dsbadger "github.com/ipfs/go-ds-badger2"
 	"github.com/mitchellh/go-homedir"
+
 	"github.com/p2p-games/wordle/libs/fslock"
 	"github.com/p2p-games/wordle/libs/keystore"
 )

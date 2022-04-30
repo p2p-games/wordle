@@ -44,7 +44,7 @@ func TestVerify(t *testing.T) {
 	ch, err := GetChars("table", []string{"a", "b", "c", "d", "e"})
 	require.NoError(err)
 
-	v, err := Verify("apple", &Word{Chars: ch})
+	v, err := VerifyString("apple", &Word{Chars: ch})
 	require.NoError(err)
 
 	require.Equal([]bool{false, false, false, true, true}, v)
@@ -56,7 +56,7 @@ func TestVerifyDifferentLengths(t *testing.T) {
 	ch, err := GetChars("table", []string{"a", "b", "c", "d", "e"})
 	require.NoError(err)
 
-	v, err := Verify("shortable", &Word{Chars: ch})
+	v, err := VerifyString("shortable", &Word{Chars: ch})
 	require.NoError(err)
 
 	require.Equal([]bool{false, false, false, false, false}, v)
@@ -64,7 +64,7 @@ func TestVerifyDifferentLengths(t *testing.T) {
 	ch, err = GetChars("shortable", []string{"a", "b", "c", "d", "e", "f", "g", "h", "j"})
 	require.NoError(err)
 
-	v, err = Verify("short", &Word{Chars: ch})
+	v, err = VerifyString("short", &Word{Chars: ch})
 	require.NoError(err)
 
 	require.Equal([]bool{false, false, false, false, false, false, false, false, false}, v)

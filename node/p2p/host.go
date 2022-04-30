@@ -14,7 +14,6 @@ import (
 	p2pconfig "github.com/libp2p/go-libp2p/config"
 	routedhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	"go.uber.org/fx"
-
 )
 
 // RoutedHost constructs a wrapped Host that may fallback to address discovery,

@@ -33,7 +33,7 @@ func DefaultConfig() Config {
 			"/ip6/::/tcp/2121",
 		},
 		Bootstrapper: false,
-		ConnManager: DefaultConnManagerConfig(),
+		ConnManager:  DefaultConnManagerConfig(),
 	}
 }
 

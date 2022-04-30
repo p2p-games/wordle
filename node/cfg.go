@@ -15,7 +15,7 @@ type ConfigLoader func() (*Config, error)
 // Config is main configuration structure for a Node.
 // It combines configuration units for all Node subsystems.
 type Config struct {
-	P2P      p2p.Config
+	P2P p2p.Config
 }
 
 // DefaultConfig provides a default Config for a given Node Type 'tp'.
@@ -24,11 +24,11 @@ func DefaultConfig(tp Type) *Config {
 	switch tp {
 	case Light:
 		return &Config{
-			P2P:      p2p.DefaultConfig(),
+			P2P: p2p.DefaultConfig(),
 		}
 	case Full:
 		return &Config{
-			P2P:      p2p.DefaultConfig(),
+			P2P: p2p.DefaultConfig(),
 		}
 	default:
 		panic("node: unknown Node Type")
@@ -58,7 +58,6 @@ func LoadConfig(path string) (*Config, error) {
 	return &cfg, cfg.Decode(f)
 }
 
-
 // Encode flushes a given Config into w.
 func (cfg *Config) Encode(w io.Writer) error {
 	return toml.NewEncoder(w).Encode(cfg)
@@ -69,4 +68,3 @@ func (cfg *Config) Decode(r io.Reader) error {
 	_, err := toml.NewDecoder(r).Decode(cfg)
 	return err
 }
-

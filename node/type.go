@@ -38,12 +38,12 @@ func ParseType(str string) Type {
 
 // typeToString keeps string representations of all valid Types.
 var typeToString = map[Type]string{
-	Light:  "Light",
-	Full:   "Full",
+	Light: "Light",
+	Full:  "Full",
 }
 
 // typeToString maps strings representations of all valid Types.
 var stringToType = map[string]Type{
-	"Light":  Light,
-	"Full":   Full,
+	"Light": Light,
+	"Full":  Full,
 }

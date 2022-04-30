@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/ipfs/go-datastore"
+
 	"github.com/p2p-games/wordle/model"
 )
 
@@ -60,9 +61,8 @@ func (s *Store) Get(ctx context.Context, height int) (*model.Header, error) {
 		return nil, err
 	}
 
-
 	h := &model.Header{}
 	return h, json.Unmarshal(data, &h)
 }
 
-var headKey  = datastore.NewKey("head")
+var headKey = datastore.NewKey("head")
