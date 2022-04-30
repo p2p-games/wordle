@@ -32,7 +32,7 @@ func TestService(t *testing.T) {
 		require.NoError(t, err)
 
 		servs[i] = NewService(h, ds, ps)
-		err = servs[i].Start()
+		err = servs[i].Start(ctx)
 		require.NoError(t, err)
 
 		subs[i], err = net.Hosts()[0].EventBus().Subscribe(&event.EvtPeerIdentificationCompleted{})

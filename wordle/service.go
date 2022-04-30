@@ -62,41 +62,40 @@ func (s *Service) Stop(context.Context) error {
 	return s.topic.Close()
 }
 
-func (s *Service) handle(stream net.Stream) {
-
-}
-
-func (s *Service) validate(ctx context.Context, _ peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
-	proposal := &model.Header{}
-	err := json.Unmarshal(msg.Data, proposal)
-	if err != nil {
-		log.Errorw("unmarshalling proposal", "err", err)
-		return pubsub.ValidationReject
-	}
-
+func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
 	head, err := s.store.Head(ctx)
 	switch err {
 	default:
-		log.Errorw("getting local head", "err", err)
-		return pubsub.ValidationIgnore
+		return err
 	case datastore.ErrNotFound:
-	case nil:
-	}
-
-	if head == nil || model.Verify(head.Proposal, proposal.Guess) {
-		err = s.store.Append(ctx, proposal)
+		// a special case for genesis header
+		head, err = model.NewHeader(guess, nil, proposal, s.host.ID().String(), nil)
 		if err != nil {
-			log.Errorw("appending the successful proposal", "err", err)
-			return pubsub.ValidationIgnore
+			return err
+		}
+	case nil:
+		salts := make([]string, len(head.Proposal.Chars))
+		for i, ch := range head.Proposal.Chars {
+			salts[i] = ch.Salt
 		}
 
-		log.Debugf("rcvd successful guess")
-	} else {
-		log.Debugf("rcvd unsuccessful guess")
+		hash, err := head.Hash()
+		if err != nil {
+			return err
+		}
+
+		head, err = model.NewHeader(guess, salts, proposal, s.host.ID().String(), hash)
+		if err != nil {
+			return err
+		}
 	}
 
-	// we allow unsuccessful guesses to be passed around the network, but we store only successful ones
-	return pubsub.ValidationAccept
+	data, err := json.Marshal(head)
+	if err != nil {
+		return err
+	}
+
+	return s.topic.Publish(ctx, data)
 }
 
 func (s *Service) Guesses(ctx context.Context) (<-chan *model.Header, error) {
@@ -138,38 +137,39 @@ func (s *Service) Guesses(ctx context.Context) (<-chan *model.Header, error) {
 	return out, nil
 }
 
-func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
+func (s *Service) validate(ctx context.Context, _ peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+	proposal := &model.Header{}
+	err := json.Unmarshal(msg.Data, proposal)
+	if err != nil {
+		log.Errorw("unmarshalling proposal", "err", err)
+		return pubsub.ValidationReject
+	}
+
 	head, err := s.store.Head(ctx)
 	switch err {
 	default:
-		return err
+		log.Errorw("getting local head", "err", err)
+		return pubsub.ValidationIgnore
 	case datastore.ErrNotFound:
-		// a special case for genesis header
-		head, err = model.NewHeader(guess, nil, proposal, s.host.ID().String(), nil)
-		if err != nil {
-			return err
-		}
 	case nil:
-		salts := make([]string, len(head.Proposal.Chars))
-		for i, ch := range head.Proposal.Chars {
-			salts[i] = ch.Salt
-		}
-
-		hash, err := head.Hash()
-		if err != nil {
-			return err
-		}
-
-		head, err = model.NewHeader(guess, salts, proposal, s.host.ID().String(), hash)
-		if err != nil {
-			return err
-		}
 	}
 
-	data, err := json.Marshal(head)
-	if err != nil {
-		return err
+	if head == nil || model.Verify(head.Proposal, proposal.Guess) {
+		err = s.store.Append(ctx, proposal)
+		if err != nil {
+			log.Errorw("appending the successful proposal", "err", err)
+			return pubsub.ValidationIgnore
+		}
+
+		log.Debugf("rcvd successful guess")
+	} else {
+		log.Debugf("rcvd unsuccessful guess")
 	}
 
-	return s.topic.Publish(ctx, data)
+	// we allow unsuccessful guesses to be passed around the network, but we store only successful ones
+	return pubsub.ValidationAccept
+}
+
+func (s *Service) handle(stream net.Stream) {
+
 }
