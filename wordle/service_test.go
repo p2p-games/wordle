@@ -10,9 +10,10 @@ import (
 	"github.com/libp2p/go-libp2p-core/event"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
-	"github.com/p2p-games/wordle/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/p2p-games/wordle/model"
 )
 
 func TestService(t *testing.T) {
@@ -64,7 +65,7 @@ func TestService(t *testing.T) {
 		err := serv.Guess(ctx, prev, prop)
 		require.NoError(t, err)
 		prev = prop
-		time.Sleep(time.Millisecond*50)
+		time.Sleep(time.Millisecond * 50)
 	}
 
 	for _, sub := range guesses {
@@ -81,4 +82,3 @@ func TestService(t *testing.T) {
 		assert.Equal(t, head, headCpr)
 	}
 }
-

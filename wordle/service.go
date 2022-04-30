@@ -12,6 +12,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+
 	"github.com/p2p-games/wordle/model"
 )
 
@@ -22,16 +23,16 @@ var topic = "wordle"
 var protoID protocol.ID = "/wordle/v0.0.1"
 
 type Service struct {
-	store *Store
-	host core.Host
+	store  *Store
+	host   core.Host
 	pubsub *pubsub.PubSub
-	topic *pubsub.Topic
+	topic  *pubsub.Topic
 }
 
 func NewService(host core.Host, ds datastore.Batching, pubsub *pubsub.PubSub) *Service {
 	return &Service{
-		store: NewStore(ds),
-		host:  host,
+		store:  NewStore(ds),
+		host:   host,
 		pubsub: pubsub,
 	}
 }
@@ -39,7 +40,7 @@ func NewService(host core.Host, ds datastore.Batching, pubsub *pubsub.PubSub) *S
 func (s *Service) Start(context.Context) error {
 	err := s.pubsub.RegisterTopicValidator(topic, s.validate)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	s.topic, err = s.pubsub.Join(topic)
@@ -56,7 +57,7 @@ func (s *Service) Stop(context.Context) error {
 	s.host.RemoveStreamHandler(protoID)
 	err := s.pubsub.UnregisterTopicValidator(topic)
 	if err != nil {
-		return  err
+		return err
 	}
 
 	return s.topic.Close()

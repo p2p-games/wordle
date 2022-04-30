@@ -4,8 +4,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/p2p-games/wordle/node"
 	"github.com/spf13/cobra"
+
+	"github.com/p2p-games/wordle/node"
 )
 
 // Start constructs a CLI command to start Node daemon of any type with the given flags.

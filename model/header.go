@@ -44,7 +44,7 @@ type Char struct {
 }
 
 func NewHeader(guess string, gSalts []string, proposal, peerID string, target multihash.Multihash) (*Header, error) {
-	var pSalt []string
+	pSalt := make([]string, 0, len(proposal))
 	for i := 0; i < len(proposal); i++ {
 		pSalt = append(pSalt, RandomString(30))
 	}
@@ -76,7 +76,7 @@ func VerifyString(guess string, challenge *Word) ([]bool, error) {
 		return result, nil
 	}
 
-	var salts []string
+	salts := make([]string, 0, len(challenge.Chars))
 	for _, ch := range challenge.Chars {
 		salts = append(salts, ch.Salt)
 	}
@@ -108,7 +108,7 @@ func GetChars(word string, salts []string) ([]*Char, error) {
 	if len(word) != len(salts) {
 		return nil, ErrSaltsAndCharsDidntMatch
 	}
-	var chars []*Char
+	chars := make([]*Char, len(word))
 	h := sha256.New()
 	for i, r := range word {
 		salt := salts[i]

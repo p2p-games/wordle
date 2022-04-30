@@ -15,21 +15,21 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/p2p-games/wordle/wordle"
 	"go.uber.org/fx"
+
+	"github.com/p2p-games/wordle/wordle"
 )
 
 var log = logging.Logger("node")
-
 
 const LifecycleTimeout = time.Second * 15
 
 type Node struct {
 	Type Type
 
-	Host core.Host
-	PubSub     *pubsub.PubSub
-	Datastore datastore.Batching
+	Host         core.Host
+	PubSub       *pubsub.PubSub
+	Datastore    datastore.Batching
 	ConnGater    connmgr.ConnectionGater
 	Routing      routing.PeerRouting
 	DataExchange exchange.Interface
