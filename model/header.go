@@ -70,28 +70,13 @@ func NewHeader(guess string, gSalts []string, proposal, peerID string, target mu
 	}, nil
 }
 
-func Verify(guess string, challenge *Word) ([]bool, error) {
-	result := make([]bool, len(challenge.Chars))
-
-	if len(guess) != len(challenge.Chars) {
-		return result, nil
-	}
-
-	var salts []string
-	for _, ch := range challenge.Chars {
-		salts = append(salts, ch.Salt)
-	}
-
-	gch, err := GetChars(guess, salts)
-	if err != nil {
-		return result, err
-	}
-
+func Verify(guess, challenge *Word) bool {
 	for i, ch := range challenge.Chars {
-		result[i] = gch[i].Hash == ch.Hash
+		if guess.Chars[i].Hash != ch.Hash {
+			return false
+		}
 	}
-
-	return result, nil
+	return true
 }
 
 var ErrSaltsAndCharsDidntMatch = errors.New("number of salts and number of letters didn't match")
