@@ -16,7 +16,7 @@ import (
 )
 
 func TestService(t *testing.T) {
-	const peers = 2
+	const peers = 5
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -64,7 +64,7 @@ func TestService(t *testing.T) {
 		err := serv.Guess(ctx, prev, prop)
 		require.NoError(t, err)
 		prev = prop
-		time.Sleep(time.Millisecond*500)
+		time.Sleep(time.Millisecond*50)
 	}
 
 	for _, sub := range guesses {

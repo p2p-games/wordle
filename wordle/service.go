@@ -83,7 +83,6 @@ func (s *Service) validate(ctx context.Context, _ peer.ID, msg *pubsub.Message) 
 		log.Debugf("rcvd unsuccessful guess")
 	}
 
-	// TODO(@Wondertan): Add notification API so that users can know what guesses were rcvd, including self
 	// we allow unsuccessful guesses to be passed around the network, but we store only successful ones
 	return pubsub.ValidationAccept
 }
@@ -102,6 +101,11 @@ func (s *Service) Guesses(ctx context.Context) (<-chan *model.Header, error) {
 			msg, err := sub.Next(ctx)
 			if err != nil {
 				return
+			}
+
+			if peer.ID(msg.From) == s.host.ID() {
+				// ignore self messages
+				continue
 			}
 
 			header := &model.Header{}
