@@ -63,6 +63,10 @@ func (s *Service) Stop(context.Context) error {
 	return s.topic.Close()
 }
 
+func (s *Service) Head(ctx context.Context) (*model.Header, error) {
+	return s.store.Head(ctx)
+}
+
 func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
 	head, err := s.store.Head(ctx)
 	switch err {
