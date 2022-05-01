@@ -75,20 +75,24 @@ func (w *WordleUI) Run() {
 	w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, guessMsgC)
 
 	// generate a terminal manager
-	w.tm = NewTerminalManager(w.ctx)
-
+	w.tm = NewTerminalManager(w.ctx, w.CurrentGame)
+	err = w.tm.Run()
+	if err != nil {
+		panic(err)
+	}
 	// get the channel for incoming headers
 	incomingHeaders, err := w.WordleServ.Guesses(w.ctx)
 	if err != nil {
 		panic("unable to retrieve the channel of headers from the user interface")
 	}
-	w.tm.RefreshAndRead(w.CurrentGame)
 
 	for {
 		select {
 		case guess := <-guessMsgC: // new guess from the user
+			w.AddDebugItem(fmt.Sprintf("sending guess %#v to peers", guess))
 			w.WordleServ.Guess(w.ctx, guess.Guess, guess.Proposal)
-			w.tm.RefreshAndRead(w.CurrentGame)
+			w.AddDebugItem("guess sent")
+			//w.tm.RefreshAndRead(w.CurrentGame)
 
 		case recHeader := <-incomingHeaders: // incoming New Message from surrounding peers
 			// verify weather the header is correct or not
@@ -98,7 +102,7 @@ func (w *WordleUI) Run() {
 				w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, guessMsgC)
 
 				// refresh the terminal manager
-				w.tm.RefreshAndRead(w.CurrentGame)
+				w.tm.Game = w.CurrentGame
 			} else {
 				// Actually, there isn't anything else to do
 				continue
@@ -110,4 +114,8 @@ func (w *WordleUI) Run() {
 			return
 		}
 	}
+}
+
+func (w *WordleUI) AddDebugItem(s string) {
+	w.tm.AddDebugEvent(s)
 }
