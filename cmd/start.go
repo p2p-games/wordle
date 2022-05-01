@@ -47,14 +47,15 @@ Options passed on start override configuration options only on start and are not
 				return err
 			}
 
+			ui := wordle.NewWordleUI(ctx, nd.Wordle, nd.Host.ID().String())
+			ui.Run()
+
 			go func() {
 				hch, _ := nd.Wordle.Guesses(ctx)
 				for hch := range hch {
-					fmt.Printf("New guess from '%s' \n", hch.PeerID)
+					ui.AddDebugItem(fmt.Sprintf("New guess from '%s' \n", hch.PeerID))
 				}
 			}()
-			ui := wordle.NewWordleUI(ctx, nd.Wordle, nd.Host.ID().String())
-			ui.Run()
 
 			<-ctx.Done()
 			cancel() // ensure we stop reading more signals for start context
