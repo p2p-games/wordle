@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os/signal"
 	"syscall"
 
@@ -37,6 +38,13 @@ Options passed on start override configuration options only on start and are not
 			if err != nil {
 				return err
 			}
+
+			go func() {
+				hch, _ := nd.Wordle.Guesses(ctx)
+				for hch := range hch {
+					fmt.Printf("New guess from '%s' \n", hch.PeerID)
+				}
+			}()
 
 			<-ctx.Done()
 			cancel() // ensure we stop reading more signals for start context
