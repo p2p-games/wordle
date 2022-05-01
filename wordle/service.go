@@ -121,11 +121,7 @@ func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
 		return err
 	}
 
-	return s.topic.Publish(
-		ctx,
-		data,
-		pubsub.WithReadiness(pubsub.MinTopicSize(1)),
-	)
+	return s.topic.Publish(ctx, data)
 }
 
 func (s *Service) Guesses(ctx context.Context) (<-chan *model.Header, error) {
@@ -272,7 +268,7 @@ func (s *Service) askPeers(ctx context.Context) []*model.Header {
 		return nil
 	}
 
-	fmt.Printf("JFYI, anon, we are on the hight %d \n", head.Height)
+	fmt.Printf("JFYI, anon, we are on the height %d \n", head.Height)
 
 	height := head.Height
 	headers := make(map[int][]*model.Header)
