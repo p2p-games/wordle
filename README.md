@@ -13,9 +13,17 @@ was to implement something based on the [Lazy Client for Lazy Blockchains paper]
 we decided to implement a game with global state transitions, like Wordle.
 
 ## How
-The protocol can be explained as a very simple permissionless blockchain with two actors Light and Full(WIP) Nodes. The
+The protocol can be explained as a simple permissionless blockchain with two actors, Light and Full(WIP) Nodes. The
 Light Nodes are actual players participating in the global consensus by solving each other word puzzles and growing the 
-canonical chain. The Full Nodes are mainly the infrastructure nodes that sync and serve the whole chain to the network.
+canonical chain. The Full Nodes are mainly the infrastructure nodes that sync and serve the whole chain to the network. 
+The essential property of the protocol is that Light Nodes only need to access the latest state header to interact with the network in a trust minimized manner without the requirement to sync the whole chain, but with an assumption that it connects to at least one honest Full Node.
+
+## Play
+* Clone it
+* `make build` it
+* `./build/wordle light start` it
+* Wait until you discover peers
+* Play it
 
 ## Comments for reviewers
 * The actual protocol is in `./wordle` pkg
@@ -28,16 +36,18 @@ that enable message sending to all dynamically changing immediate peers over lon
 Going further, [the paper](https://arxiv.org/abs/2203.15968) describes a novel way on how to resolve such disputes in
 efficient manner.
   * Proposer/Guesser signing is missing
+  * The protocol relies on the longest chain fork-choice rule, meaning that the chain with the bigger amount of guessed words is preffered by the protocol. Unfortunately, word guessing can be easily brutforced, s.t. an attacker can precompute a fork with a longer chain that everyone will eventually switch to. 
   * ...
 * Message propagation is done with PubSub
 * Peer/Topic discover is done over kDHT with management delegated to PubSub's internal discovery feature
 
-## Play
-* Clone it
-* `make build` it
-* `./build/wordle light start` it
-* Wait until you discover peers
-* Play it
+## Future Work
+* [ ] Finish dispute resolution imeplemtnation
+* [ ] Finish implementation of the Full Node
+* [ ] Leaderboar with dUTXO based state machine
+* [ ] Move towards generalization of the protocol
+ * Generic Consensus interface for swappable/composable consensuses
+ * Generic dispute resolution protocol
 
 ## Team
 * [@Wondertan](https://github.com/Wondertan)
