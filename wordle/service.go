@@ -251,7 +251,7 @@ func (s *Service) ensurePeers(ctx context.Context) {
 	defer t.Stop()
 	for {
 		if len(s.reqs.Peers()) >= 1 {
-			fmt.Println("Yay! Discovered some peers")
+			//fmt.Println("Yay! Discovered some peers")
 			return
 		}
 
@@ -272,7 +272,7 @@ func (s *Service) askPeers(ctx context.Context) []*model.Header {
 		return nil
 	}
 
-	fmt.Printf("JFYI, anon, we are on the height %d \n", head.Height)
+	//fmt.Printf("JFYI, anon, we are on the height %d \n", head.Height)
 
 	height := head.Height
 	headers := make(map[int][]*model.Header)

@@ -3,6 +3,7 @@ package wordle
 import (
 	"fmt"
 	"strings"
+	"sync/atomic"
 
 	"github.com/p2p-games/wordle/model"
 	"github.com/pkg/errors"
@@ -17,7 +18,7 @@ type WordGame struct {
 	Target *model.Word
 	Salts  []string
 
-	StateIdx int
+	StateIdx int32
 	NextWord string
 
 	AttemptedWords []string
@@ -38,24 +39,24 @@ func NewWordGame(peerId string, proposerId string, target *model.Word, sendMsgC 
 		PeerId:         peerId,
 		Target:         target,
 		Salts:          salts,
-		StateIdx:       0, // start requesting the word
+		StateIdx:       int32(0), // start requesting the word
 		AttemptedWords: make([]string, 0),
 		isCorrect:      make(map[string][]bool),
 		guessMsgC:      sendMsgC,
 	}
 	if proposerId == peerId {
 		// go straight to the 2 state (I already won)
-		wg.StateIdx = 2
+		atomic.StoreInt32(&wg.StateIdx, int32(2))
 	}
 	return wg
 }
 
 func (w *WordGame) ComposeStateUI() string {
 	var s string
-	switch w.StateIdx {
-	case 0:
+	switch atomic.LoadInt32(&w.StateIdx) {
+	case int32(0):
 		s += fmt.Sprintf("Introduce your word proposal for the next word to guess:\n")
-	case 1:
+	case int32(1):
 		s = "Guess which is the current Word:\n"
 		for _, guessedWord := range w.AttemptedWords {
 			if guessedWord != "" {
@@ -74,9 +75,9 @@ func (w *WordGame) ComposeStateUI() string {
 			}
 		}
 		s += fmt.Sprintf("\nAttempts left %d\n", maxAttempts-len(w.AttemptedWords))
-	case 2:
+	case int32(2):
 		s = "\n\tCongrats, you guessed the word!\nWait untill someone guesses it to play again\n"
-	case 3:
+	case int32(3):
 		s = "\n\tNo more attempts left for this word!\nWait untill someone guesses it to play again\n"
 	default:
 		s = "unrecognized state to generate the UI\n"
@@ -87,17 +88,19 @@ func (w *WordGame) ComposeStateUI() string {
 func (w *WordGame) NewStdinInput(input string) error {
 	// check if non alphanumeric character
 	input = strings.ToLower(input)
-	if !IsLetter(input) {
-		return nil
-	}
+	/*
+		if !IsLetter(input) {
+			return errors.New("not a letter")
+		}
+	*/
 	// check in which state do we are
-	switch w.StateIdx {
-	case 0:
+	switch atomic.LoadInt32(&w.StateIdx) {
+	case int32(0):
 		err := w.addNextTarget(input, w.Salts)
 		if err != nil {
 			return err
 		}
-	case 1:
+	case int32(1):
 		err := w.addNewGuess(input)
 		if err != nil {
 			return err
@@ -111,13 +114,13 @@ func (w *WordGame) NewStdinInput(input string) error {
 
 func (w *WordGame) addNextTarget(nextWord string, salts []string) error {
 	// check if we are in state 0
-	if w.StateIdx != 0 {
+	if atomic.LoadInt32(&w.StateIdx) != int32(0) {
 		return errors.New("unable to add next target, not in state 0")
 	}
 
 	w.NextWord = nextWord
 	// go to state 1
-	w.StateIdx = 1
+	atomic.StoreInt32(&w.StateIdx, int32(1))
 	return nil
 }
 
@@ -137,7 +140,7 @@ func (w *WordGame) WasGuessed() bool {
 
 func (w *WordGame) addNewGuess(guessedWord string) error {
 	// check if we are in state 1
-	if w.StateIdx != 1 {
+	if atomic.LoadInt32(&w.StateIdx) != int32(1) {
 		return errors.New("unable to add next target, not in state 1")
 	}
 
@@ -155,12 +158,12 @@ func (w *WordGame) addNewGuess(guessedWord string) error {
 		return err
 	}
 	if IsGuessSuccess(comp) {
-		w.StateIdx = 2 // Congrats, wait untill someone guesses your word
+		atomic.StoreInt32(&w.StateIdx, int32(2)) // Congrats, wait untill someone guesses your word
 	}
 
 	// check if we did all the attempts
 	if len(w.AttemptedWords) == maxAttempts && !IsGuessSuccess(comp) {
-		w.StateIdx = 3 // Wait untill you can play again
+		atomic.StoreInt32(&w.StateIdx, int32(3)) // Wait untill you can play again
 	}
 
 	// send the msg over the channel to notify the service

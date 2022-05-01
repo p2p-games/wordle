@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/p2p-games/wordle/node"
+	"github.com/p2p-games/wordle/wordle"
 )
 
 const path = "~/.wordle"
@@ -52,6 +53,8 @@ Options passed on start override configuration options only on start and are not
 					fmt.Printf("New guess from '%s' \n", hch.PeerID)
 				}
 			}()
+			ui := wordle.NewWordleUI(ctx, nd.Wordle, nd.Host.ID().String())
+			ui.Run()
 
 			<-ctx.Done()
 			cancel() // ensure we stop reading more signals for start context
