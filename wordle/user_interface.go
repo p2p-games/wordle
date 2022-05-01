@@ -10,7 +10,6 @@ import (
 var MinWordLen int = 3
 var MaxWordLen int = 25
 var MaxApptemps int = 5
-var testWord string = "test"
 
 type WordleUI struct {
 	ctx context.Context

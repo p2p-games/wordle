@@ -79,7 +79,7 @@ func (s *Service) Start(ctx context.Context) (err error) {
 		return err
 	}
 
-	ctx, s.cancel = context.WithCancel(context.Background())
+	ctx, s.cancel = context.WithCancel(ctx)
 	go s.bootstrap(ctx)
 	go s.listen(ctx)
 	s.log("Started P2P Wordle")
