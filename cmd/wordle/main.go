@@ -13,11 +13,9 @@ import (
 func init() {
 	lightCmd.AddCommand(
 		cmd.Start(node.Light),
-		cmd.Init(node.Light),
 	)
 	fullCmd.AddCommand(
 		cmd.Start(node.Full),
-		cmd.Init(node.Full),
 	)
 	rootCmd.AddCommand(
 		lightCmd,
