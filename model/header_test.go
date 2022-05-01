@@ -9,7 +9,15 @@ import (
 func TestNewHeader(t *testing.T) {
 	require := require.New(t)
 
-	h, err := NewHeader("hello", []string{"a", "b", "c", "d", "e"}, "proposal", "peerID", nil)
+	h, err := NewHeader(&Header{Proposal: &Word{
+		Chars: []*Char{
+			{Salt: "a"},
+			{Salt: "b"},
+			{Salt: "c"},
+			{Salt: "d"},
+			{Salt: "e"},
+		},
+	}}, "hello", "proposal", "peerID")
 	require.NoError(err)
 
 	require.Equal(&Word{
