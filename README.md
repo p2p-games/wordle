@@ -12,6 +12,13 @@ This project is a [hackaton](https://p2p.paris/en/event/hackathon-1/) submission
 was to implement something based on the [Lazy Client for Lazy Blockchains paper](https://arxiv.org/abs/2203.15968), and 
 we decided to implement a game with global state transitions, like Wordle.
 
+## Play
+* Clone it
+* `make build` it
+* `./build/wordle light start` it
+* Wait until you discover peers
+* Play it
+
 ## Team
 * [@Wondertan](https://github.com/Wondertan)
 * [@cortze](https://github.com/cortze)
