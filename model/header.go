@@ -9,6 +9,8 @@ import (
 	"github.com/multiformats/go-multihash"
 )
 
+// TODO(@Wondertan): Add signatures
+
 type Header struct {
 	Height         int
 	LastHeaderHash multihash.Multihash
@@ -43,12 +45,22 @@ type Char struct {
 	Hash string
 }
 
-func NewHeader(guess string, gSalts []string, proposal, peerID string, target multihash.Multihash) (*Header, error) {
+func NewHeader(last *Header, guess, proposal, peerID string) (*Header, error) {
 	pSalt := make([]string, 0, len(proposal))
 	for i := 0; i < len(proposal); i++ {
 		pSalt = append(pSalt, RandomString(30))
 	}
 	pw, err := GetChars(proposal, pSalt)
+	if err != nil {
+		return nil, err
+	}
+
+	gSalts := make([]string, len(last.Proposal.Chars))
+	for i, ch := range last.Proposal.Chars {
+		gSalts[i] = ch.Salt
+	}
+
+	hash, err := last.Hash()
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +71,8 @@ func NewHeader(guess string, gSalts []string, proposal, peerID string, target mu
 	}
 
 	return &Header{
-		LastHeaderHash: target,
+		Height:         last.Height + 1,
+		LastHeaderHash: hash,
 		PeerID:         peerID,
 		Guess: &Word{
 			Chars: gw,
@@ -108,7 +121,7 @@ func GetChars(word string, salts []string) ([]*Char, error) {
 	if len(word) != len(salts) {
 		return nil, ErrSaltsAndCharsDidntMatch
 	}
-	chars := make([]*Char, len(word))
+	chars := make([]*Char, 0, len(word))
 	h := sha256.New()
 	for i, r := range word {
 		salt := salts[i]

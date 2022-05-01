@@ -52,6 +52,7 @@ func Components(cfg Config) fx.Option {
 		fx.Provide(DAG),
 		fx.Provide(PeerRouting(cfg)),
 		fx.Provide(ContentRouting),
+		fx.Provide(Discovery),
 		fx.Provide(AddrsFactory(cfg.AnnounceAddresses, cfg.NoAnnounceAddresses)),
 		fx.Invoke(Listen(cfg.ListenAddresses)),
 	)

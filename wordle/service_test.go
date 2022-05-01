@@ -35,7 +35,6 @@ func TestService(t *testing.T) {
 		servs[i] = NewService(h, ds, ps)
 		err = servs[i].Start(ctx)
 		require.NoError(t, err)
-
 		subs[i], err = net.Hosts()[0].EventBus().Subscribe(&event.EvtPeerIdentificationCompleted{})
 		require.NoError(t, err)
 	}
@@ -59,7 +58,7 @@ func TestService(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	var prev string
+	prev := topic
 	for _, serv := range servs {
 		prop := model.RandomString(5)
 		err := serv.Guess(ctx, prev, prop)
