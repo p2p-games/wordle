@@ -24,6 +24,7 @@ func PeerRouting(cfg Config) func(routingParams) (routing.PeerRouting, error) {
 			dht.Datastore(params.DataStore),
 			dht.QueryFilter(dht.PublicQueryFilter),
 			dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
+			dht.BootstrapPeers(dht.GetDefaultBootstrapPeerAddrInfos()...),
 		}
 
 		if cfg.Bootstrapper {

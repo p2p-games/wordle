@@ -4,6 +4,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/p2p-games/wordle/node"
@@ -19,6 +20,7 @@ Options passed on start override configuration options only on start and are not
 		Args:         cobra.NoArgs,
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			logging.SetAllLoggers(logging.LevelInfo)
 			store, err := node.OpenStore("~/.wordle")
 			if err != nil {
 				return err
