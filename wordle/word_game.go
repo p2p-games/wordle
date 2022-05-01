@@ -151,12 +151,14 @@ func (w *WordGame) addNewGuess(guessedWord string) error {
 	if err != nil {
 		return nil
 	}
+
 	w.isCorrect[guessedWord] = correct
 
 	comp, err := model.VerifyString(guessedWord, w.Target)
 	if err != nil {
 		return err
 	}
+
 	if IsGuessSuccess(comp) {
 		atomic.StoreInt32(&w.StateIdx, int32(2)) // Congrats, wait untill someone guesses your word
 	}

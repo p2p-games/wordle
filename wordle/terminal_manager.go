@@ -22,7 +22,6 @@ type TerminalManager struct {
 
 	stateBox     io.Writer
 	inputCh      chan string
-	DebugCh      chan string
 	OthersGuessC chan struct{}
 
 	doneCh chan struct{}
@@ -111,8 +110,7 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 		stateBox:     stateBox,
 		debugBox:     debugB,
 		inputCh:      inputCh,
-		OthersGuessC: make(chan struct{}),
-		DebugCh:      make(chan string),
+		OthersGuessC: make(chan struct{}, 10),
 		doneCh:       make(chan struct{}, 1),
 	}
 }
@@ -150,7 +148,7 @@ func (ui *TerminalManager) displayDebugString(s string) {
 	fmt.Fprintf(ui.debugBox, "%s\n", s)
 }
 
-func (ui *TerminalManager) addDebugItem(s string) {
+func (ui *TerminalManager) AddDebugItem(s string) {
 	ui.displayDebugString(s)
 }
 
@@ -161,32 +159,27 @@ func (ui *TerminalManager) handleEvents() {
 	for {
 		select {
 		case input := <-ui.inputCh:
-			ui.AddDebugEvent(fmt.Sprintf("New input: %s", input))
+			ui.AddDebugItem(fmt.Sprintf("New input: %s", input))
 			// when the user types in a line, publish it to the chat room and print to the message window
 			err := ui.Game.NewStdinInput(input)
 			if err != nil {
-				ui.AddDebugEvent(fmt.Sprintln("publish error: %s", err))
+				ui.AddDebugItem(fmt.Sprintln("publish error: %s", err))
 			}
-			ui.AddDebugEvent("input call done:")
+			ui.AddDebugItem(fmt.Sprintf("next state machine %d", ui.Game.StateIdx))
 
-		case _ = <-ui.OthersGuessC:
+		case others := <-ui.OthersGuessC:
+			ui.AddDebugItem(fmt.Sprint("new gueess from someone", others))
 			// when we receive a message from the chat room, print it to the message window
 
-		case debugS := <-ui.DebugCh:
-			ui.addDebugItem(debugS)
-
 		case <-ui.ctx.Done():
+			fmt.Println("context done")
 			return
 
 		case <-ui.doneCh:
+			fmt.Println("channel done")
+
 			return
 		}
 		ui.displayStateStatus()
 	}
-}
-
-func (ui *TerminalManager) AddDebugEvent(s string) {
-	go func() {
-		ui.DebugCh <- s
-	}()
 }

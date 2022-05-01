@@ -71,7 +71,7 @@ func (w *WordleUI) Run() {
 	}
 
 	// generate a new game
-	guessMsgC := make(chan guess)
+	guessMsgC := make(chan guess, 100)
 	w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, guessMsgC)
 
 	// generate a terminal manager
@@ -95,19 +95,21 @@ func (w *WordleUI) Run() {
 			//w.tm.RefreshAndRead(w.CurrentGame)
 
 		case recHeader := <-incomingHeaders: // incoming New Message from surrounding peers
+			w.AddDebugItem(fmt.Sprintln("guess sent %#v", recHeader))
 			// verify weather the header is correct or not
-			if model.Verify(recHeader.Guess, w.CannonicalHeader.Proposal) {
-				w.CannonicalHeader = recHeader
-				// generate a new one game
-				w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, guessMsgC)
+			/*
+				if model.Verify(recHeader.Guess, w.CannonicalHeader.Proposal) {
+					w.CannonicalHeader = recHeader
+					// generate a new one game
+					w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, guessMsgC)
 
-				// refresh the terminal manager
-				w.tm.Game = w.CurrentGame
-			} else {
-				// Actually, there isn't anything else to do
-				continue
-			}
-
+					// refresh the terminal manager
+					w.tm.Game = w.CurrentGame
+				} else {
+					// Actually, there isn't anything else to do
+					continue
+				}
+			*/
 		case <-w.ctx.Done(): // context shutdown
 			fmt.Println("contest closed! Ciao")
 			close(guessMsgC)
@@ -117,5 +119,5 @@ func (w *WordleUI) Run() {
 }
 
 func (w *WordleUI) AddDebugItem(s string) {
-	w.tm.AddDebugEvent(s)
+	w.tm.AddDebugItem(s)
 }
