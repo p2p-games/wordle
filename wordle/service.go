@@ -39,6 +39,8 @@ type Service struct {
 
 	bootsrapped chan struct{}
 	cancel      context.CancelFunc
+
+	log func(string)
 }
 
 func NewService(host core.Host, ds datastore.Batching, pubsub *pubsub.PubSub) *Service {
@@ -57,7 +59,13 @@ func NewService(host core.Host, ds datastore.Batching, pubsub *pubsub.PubSub) *S
 		reqs:        reqs,
 		resps:       resps,
 		bootsrapped: make(chan struct{}),
+
+		log: func(s string) { fmt.Println(s) },
 	}
+}
+
+func (s *Service) SetLog(log func(string)) {
+	s.log = log
 }
 
 func (s *Service) Start(ctx context.Context) (err error) {
@@ -74,7 +82,7 @@ func (s *Service) Start(ctx context.Context) (err error) {
 	ctx, s.cancel = context.WithCancel(context.Background())
 	go s.bootstrap(ctx)
 	go s.listen(ctx)
-	fmt.Println("Started P2P Wordle")
+	s.log("Started P2P Wordle")
 	return nil
 }
 
@@ -188,9 +196,9 @@ func (s *Service) validate(ctx context.Context, _ peer.ID, msg *pubsub.Message) 
 			return pubsub.ValidationIgnore
 		}
 
-		log.Debugf("rcvd successful guess")
+		s.log("rcvd successful guess")
 	} else {
-		log.Debugf("rcvd unsuccessful guess")
+		s.log("rcvd unsuccessful guess")
 	}
 
 	// we allow unsuccessful guesses to be passed around the network, but we store only successful ones
@@ -242,7 +250,7 @@ Something suspicious is happening. Just don't do anything for now, until we impl
 		return
 	}
 
-	fmt.Printf("Updated the state! New height is %d. 'Guess what?' \n", newHead.Height)
+	s.log(fmt.Sprintf("Updated the state! New height is %d. 'Guess what?' \n", newHead.Height))
 	close(s.bootsrapped)
 }
 
@@ -251,7 +259,7 @@ func (s *Service) ensurePeers(ctx context.Context) {
 	defer t.Stop()
 	for {
 		if len(s.reqs.Peers()) >= 1 {
-			fmt.Println("Yay! Discovered some peers")
+			s.log("Yay! Discovered some peers")
 			return
 		}
 
