@@ -26,11 +26,18 @@ type WordleUI struct {
 }
 
 func NewWordleUI(ctx context.Context, wordleServ *Service, peerId string) *WordleUI {
-	return &WordleUI{
+
+	ui := &WordleUI{
 		ctx:        ctx,
 		PeerId:     peerId,
 		WordleServ: wordleServ,
 	}
+
+	wordleServ.SetLog(func(s string) {
+		ui.AddDebugItem(s)
+	})
+
+	return ui
 }
 
 func (w *WordleUI) Run() {
