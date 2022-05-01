@@ -44,10 +44,10 @@ func GetSaltsFromWord(word *model.Word) []string {
 
 // Color utilities for the wordle
 
-var Reset = "\033[0m"
-var Red = "\033[31m"
-var Green = "\033[32m"
-var Yellow = "\033[33m"
+//var Reset = "\033[0m"
+//var Red = "\033[31m"
+var Green = "green"   // "\033[32m"
+var Yellow = "yellow" // "\033[33m"
 
 func ComposeWordleVisualWord(word string, target *model.Word) string {
 	// get the salts for the word
@@ -98,6 +98,5 @@ func ComposeWordleVisualWord(word string, target *model.Word) string {
 
 // compose the character over the color and reset the terminal color
 func composeCharWithColor(char string, color string) string {
-	return fmt.Sprintf(color + char + Reset)
-
+	return fmt.Sprintf("[%s]%s", color, char)
 }
