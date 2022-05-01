@@ -49,8 +49,7 @@ func (w *WordleUI) Run() {
 	}
 
 	// generate a new game
-	guessMsgC := make(chan guess)
-	w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, guessMsgC)
+	w.CurrentGame = NewWordGame(w.ctx, w.PeerId, w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, w.WordleServ)
 
 	// generate a terminal manager
 	w.tm = NewTerminalManager(w.ctx, w.CurrentGame)
@@ -66,18 +65,13 @@ func (w *WordleUI) Run() {
 
 	for {
 		select {
-		case guess := <-guessMsgC: // new guess from the user
-			w.AddDebugItem(fmt.Sprintf("sending guess %s to peers", guess.Guess))
-			w.WordleServ.Guess(w.ctx, guess.Guess, guess.Proposal)
-			//w.tm.RefreshAndRead(w.CurrentGame)
-
 		case recHeader := <-incomingHeaders: // incoming New Message from surrounding peers
 			w.AddDebugItem(fmt.Sprintf("guess received from %s", recHeader.PeerID))
 			// verify weather the header is correct or not
 			if model.Verify(recHeader.Guess, w.CannonicalHeader.Proposal) {
 				w.CannonicalHeader = recHeader
 				// generate a new one game
-				w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, guessMsgC)
+				w.CurrentGame = NewWordGame(w.ctx, w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, w.WordleServ)
 
 				// refresh the terminal manager
 				w.tm.Game = w.CurrentGame
@@ -85,8 +79,7 @@ func (w *WordleUI) Run() {
 				// Actually, there isn't anything else to do
 				continue
 			}
-		case <-w.ctx.Done(): // context shutdown
-			close(guessMsgC)
+		case <-w.ctx.Done(): // context shutdow
 			return
 		}
 	}

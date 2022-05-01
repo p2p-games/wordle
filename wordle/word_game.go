@@ -1,6 +1,7 @@
 package wordle
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync/atomic"
@@ -12,6 +13,7 @@ import (
 const maxAttempts int = 5
 
 type WordGame struct {
+	ctx    context.Context
 	PeerId string
 
 	// to verify if the guess is correct
@@ -24,7 +26,7 @@ type WordGame struct {
 	AttemptedWords []string
 	isCorrect      map[string][]bool
 
-	guessMsgC chan guess
+	serv *Service
 }
 
 type guess struct {
@@ -33,16 +35,17 @@ type guess struct {
 }
 
 // generate new game session
-func NewWordGame(peerId string, proposerId string, target *model.Word, sendMsgC chan guess) *WordGame {
+func NewWordGame(ctx context.Context, peerId string, proposerId string, target *model.Word, serv *Service) *WordGame {
 	salts := GetSaltsFromWord(target)
 	wg := &WordGame{
+		ctx:            ctx,
 		PeerId:         peerId,
 		Target:         target,
 		Salts:          salts,
 		StateIdx:       int32(0), // start requesting the word
 		AttemptedWords: make([]string, 0),
 		isCorrect:      make(map[string][]bool),
-		guessMsgC:      sendMsgC,
+		serv:           serv,
 	}
 	if proposerId == peerId {
 		// go straight to the 2 state (I already won)
@@ -103,6 +106,7 @@ func (w *WordGame) NewStdinInput(input string) error {
 	case int32(1):
 		err := w.addNewGuess(input)
 		if err != nil {
+			fmt.Println("error adding new guess")
 			return err
 		}
 	default:
@@ -173,7 +177,11 @@ func (w *WordGame) addNewGuess(guessedWord string) error {
 		guessedWord,
 		w.NextWord,
 	}
-	w.guessMsgC <- currentGuess
-
+	fmt.Println("sending guess")
+	err = w.serv.Guess(w.ctx, currentGuess.Guess, currentGuess.Proposal)
+	if err != nil {
+		return err
+	}
+	fmt.Println("after guessing")
 	return nil
 }
