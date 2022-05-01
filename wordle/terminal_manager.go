@@ -80,14 +80,6 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 		input.SetText("")
 	})
 
-	// make a text view to hold the list of peers in the room, updated by ui.refreshPeers()
-	/*
-		peersList := tview.NewTextView()
-		peersList.SetBorder(true)
-		peersList.SetTitle("Peers")
-		peersList.SetChangedFunc(func() { app.Draw() })
-	*/
-
 	// chatPanel is a horizontal box with messages on the left and peers on the right
 	// the peers list takes 20 columns, and the messages take the remaining space
 	wordlePannel := tview.NewFlex().
@@ -123,7 +115,7 @@ func (ui *TerminalManager) Run() error {
 	if err != nil {
 		return err
 	}
-	ui.displayStateStatus()
+	ui.displayStateString(ui.Game.ComposeStateUI())
 	return nil
 
 }
@@ -157,18 +149,25 @@ func (ui *TerminalManager) handleEvents() {
 	defer peerRefreshTicker.Stop()
 
 	for {
+		ui.displayStateStatus()
 		select {
 		case input := <-ui.inputCh:
-			ui.AddDebugItem(fmt.Sprintf("New input: %s", input))
+			switch ui.Game.StateIdx {
+			case 0:
+				ui.AddDebugItem(fmt.Sprintf("Your next proposed word: %s", input))
+			case 1:
+				ui.AddDebugItem(fmt.Sprintf("Last guess: %s (freezes are expected if no peers connected)", input))
+			default:
+				continue
+			}
 			// when the user types in a line, publish it to the chat room and print to the message window
 			err := ui.Game.NewStdinInput(input)
 			if err != nil {
-				ui.AddDebugItem(fmt.Sprintln("publish error: %s", err))
+				ui.AddDebugItem(fmt.Sprintf("publish error: %s", err))
 			}
-			ui.AddDebugItem(fmt.Sprintf("next state machine %d", ui.Game.StateIdx))
 
 		case others := <-ui.OthersGuessC:
-			ui.AddDebugItem(fmt.Sprint("new gueess from someone", others))
+			ui.AddDebugItem(fmt.Sprintln("new gueess from someone", others))
 			// when we receive a message from the chat room, print it to the message window
 
 		case <-ui.ctx.Done():
@@ -180,6 +179,5 @@ func (ui *TerminalManager) handleEvents() {
 
 			return
 		}
-		ui.displayStateStatus()
 	}
 }

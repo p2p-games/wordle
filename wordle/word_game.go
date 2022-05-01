@@ -55,7 +55,7 @@ func (w *WordGame) ComposeStateUI() string {
 	var s string
 	switch atomic.LoadInt32(&w.StateIdx) {
 	case int32(0):
-		s += fmt.Sprintf("Introduce your word proposal for the next word to guess:\n")
+		s = "Introduce your word proposal as next word to guess:\n"
 	case int32(1):
 		s = "Guess which is the current Word:\n"
 		for _, guessedWord := range w.AttemptedWords {
@@ -76,7 +76,7 @@ func (w *WordGame) ComposeStateUI() string {
 		}
 		s += fmt.Sprintf("\nAttempts left %d\n", maxAttempts-len(w.AttemptedWords))
 	case int32(2):
-		s = "\n\tCongrats, you guessed the word!\nWait untill someone guesses it to play again\n"
+		s = "\n\tCongrats, you guessed the word!\nWait untill someone guesses your word to play again\n"
 	case int32(3):
 		s = "\n\tNo more attempts left for this word!\nWait untill someone guesses it to play again\n"
 	default:
