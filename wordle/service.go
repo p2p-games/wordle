@@ -272,7 +272,8 @@ func (s *Service) askPeers(ctx context.Context) []*model.Header {
 
 	height := head.Height
 	headers := make(map[int][]*model.Header)
-	for range s.reqs.Peers() {
+	for _, p := range s.reqs.Peers() {
+		s.host.ConnManager().TagPeer(p, topic, 100)
 		msg, _, err := s.resps.Receive(ctx)
 		if err != nil {
 			return nil
