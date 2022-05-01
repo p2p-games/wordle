@@ -44,7 +44,7 @@ efficient manner.
 ## Future Work
 * [ ] Finish dispute resolution imeplemtnation
 * [ ] Finish implementation of the Full Node
-* [ ] Leaderboar with dUTXO based state machine
+* [ ] Leaderboard with UTXO based state machine
 * [ ] Move towards generalization of the protocol
  * Generic Consensus interface for swappable/composable consensuses
  * Generic dispute resolution protocol
