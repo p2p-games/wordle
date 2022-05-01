@@ -12,6 +12,9 @@ This project is a [hackaton](https://p2p.paris/en/event/hackathon-1/) submission
 was to implement something based on the [Lazy Client for Lazy Blockchains paper](https://arxiv.org/abs/2203.15968), and 
 we decided to implement a game with global state transitions, like Wordle.
 
+### Side Quests
+- PL Side quest as we rely on public IPFS network and using libp2p heavily
+
 ## How
 The protocol can be explained as a simple permissionless blockchain with two actors, Light and Full(WIP) Nodes. The
 Light Nodes are actual players participating in the global consensus by solving each other word puzzles and growing the 
