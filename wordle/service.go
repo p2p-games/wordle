@@ -280,7 +280,7 @@ func (s *Service) askPeers(ctx context.Context) []*model.Header {
 		return nil
 	}
 
-	fmt.Printf("JFYI, anon, we are on the height %d \n", head.Height)
+	s.log(fmt.Sprintf("JFYI, anon, we are on the height %d \n", head.Height))
 
 	height := head.Height
 	headers := make(map[int][]*model.Header)
