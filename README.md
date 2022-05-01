@@ -48,6 +48,7 @@ efficient manner.
 * [ ] Move towards generalization of the protocol
  * Generic Consensus interface for swappable/composable consensuses
  * Generic dispute resolution protocol
+* [ ] Use [Celestia](https://celestia.org/) as DA layer 🤔 😁
 
 ## Team
 * [@Wondertan](https://github.com/Wondertan)
