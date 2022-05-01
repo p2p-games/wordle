@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/BurntSushi/toml v1.1.0
-	github.com/celestiaorg/go-libp2p-messenger v0.1.1-0.20220501005935-0b0d87fe78e7
+	github.com/celestiaorg/go-libp2p-messenger v0.1.1-0.20220501135819-c01c846cd947
 	github.com/dgraph-io/badger/v2 v2.2007.3
 	github.com/gdamore/tcell/v2 v2.5.1
 	github.com/ipfs/go-bitswap v0.6.0
