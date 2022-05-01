@@ -3,6 +3,7 @@ package p2p
 import (
 	"context"
 
+	"github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsub_pb "github.com/libp2p/go-libp2p-pubsub/pb"
@@ -14,11 +15,11 @@ import (
 func PubSub(cfg Config) func(pubSubParams) (*pubsub.PubSub, error) {
 	return func(params pubSubParams) (*pubsub.PubSub, error) {
 		opts := []pubsub.Option{
-			pubsub.WithPeerExchange(true),
+			pubsub.WithDiscovery(params.Discovery),
 			pubsub.WithMessageIdFn(hashMsgID),
 		}
 
-		return pubsub.NewGossipSub(
+		return pubsub.NewFloodSub(
 			WithLifecycle(params.Ctx, params.Lc),
 			params.Host,
 			opts...,
@@ -34,7 +35,8 @@ func hashMsgID(m *pubsub_pb.Message) string {
 type pubSubParams struct {
 	fx.In
 
-	Ctx  context.Context
-	Lc   fx.Lifecycle
-	Host host.Host
+	Ctx       context.Context
+	Lc        fx.Lifecycle
+	Host      host.Host
+	Discovery discovery.Discovery
 }

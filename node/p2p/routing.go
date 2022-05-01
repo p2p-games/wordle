@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/ipfs/go-datastore"
+	idiscovery "github.com/libp2p/go-libp2p-core/discovery"
 	"github.com/libp2p/go-libp2p-core/routing"
+	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	routinghelpers "github.com/libp2p/go-libp2p-routing-helpers"
 	"go.uber.org/fx"
 )
 
-func ContentRouting() routing.ContentRouting {
-	return &routinghelpers.Null{}
+func ContentRouting(router routing.PeerRouting) routing.ContentRouting {
+	return router.(*dht.IpfsDHT)
 }
 
 // PeerRouting provides constructor for PeerRouting over DHT.
@@ -47,6 +48,10 @@ func PeerRouting(cfg Config) func(routingParams) (routing.PeerRouting, error) {
 
 		return d, nil
 	}
+}
+
+func Discovery(r routing.ContentRouting) idiscovery.Discovery {
+	return discovery.NewRoutingDiscovery(r)
 }
 
 type routingParams struct {

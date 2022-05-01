@@ -96,7 +96,11 @@ func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
 		return err
 	}
 
-	return s.topic.Publish(ctx, data)
+	return s.topic.Publish(
+		ctx,
+		data,
+		pubsub.WithReadiness(pubsub.MinTopicSize(1)),
+	)
 }
 
 func (s *Service) Guesses(ctx context.Context) (<-chan *model.Header, error) {
