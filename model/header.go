@@ -108,7 +108,7 @@ func GetChars(word string, salts []string) ([]*Char, error) {
 	if len(word) != len(salts) {
 		return nil, ErrSaltsAndCharsDidntMatch
 	}
-	chars := make([]*Char, len(word))
+	chars := make([]*Char, 0, len(word))
 	h := sha256.New()
 	for i, r := range word {
 		salt := salts[i]
