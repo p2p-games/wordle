@@ -13,6 +13,6 @@ was to implement something based on the [Lazy Client for Lazy Blockchains paper]
 we decided to implement a game with global state transitions, like Wordle.
 
 ## Team
-* @Wondertan
-* @cortze
-* @ajnavarro
+* [@Wondertan](https://github.com/Wondertan)
+* [@cortze](https://github.com/cortze)
+* [@ajnavarro](https://github.com/ajnavarro)
