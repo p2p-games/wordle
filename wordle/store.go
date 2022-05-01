@@ -11,6 +11,9 @@ import (
 	"github.com/p2p-games/wordle/model"
 )
 
+// use topic name as genesis
+var genesis, _ = model.NewHeader(&model.Header{Proposal: &model.Word{}}, "", topic, "")
+
 type Store struct {
 	ds datastore.Batching
 }
@@ -21,18 +24,30 @@ func NewStore(ds datastore.Batching) *Store {
 	}
 }
 
+func (s *Store) Init(ctx context.Context) error {
+	return s.Append(ctx, genesis)
+}
+
 func (s *Store) Head(ctx context.Context) (*model.Header, error) {
 	data, err := s.ds.Get(ctx, headKey)
-	if err != nil {
+	switch err {
+	default:
 		return nil, err
-	}
+	case datastore.ErrNotFound:
+		err := s.Init(ctx)
+		if err != nil {
+			return nil, err
+		}
 
-	headHeight, _ := binary.Uvarint(data)
-	if err != nil {
-		return nil, err
-	}
+		return genesis, nil
+	case nil:
+		headHeight, _ := binary.Uvarint(data)
+		if err != nil {
+			return nil, err
+		}
 
-	return s.Get(ctx, int(headHeight))
+		return s.Get(ctx, int(headHeight))
+	}
 }
 
 func (s *Store) Append(ctx context.Context, h *model.Header) error {
