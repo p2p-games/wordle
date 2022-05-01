@@ -32,9 +32,10 @@ type guess struct {
 }
 
 // generate new game session
-func NewWordGame(target *model.Word, sendMsgC chan guess) *WordGame {
+func NewWordGame(peerId string, proposerId string, target *model.Word, sendMsgC chan guess) *WordGame {
 	salts := GetSaltsFromWord(target)
-	return &WordGame{
+	wg := &WordGame{
+		PeerId:         peerId,
 		Target:         target,
 		Salts:          salts,
 		StateIdx:       0, // start requesting the word
@@ -42,6 +43,11 @@ func NewWordGame(target *model.Word, sendMsgC chan guess) *WordGame {
 		isCorrect:      make(map[string][]bool),
 		guessMsgC:      sendMsgC,
 	}
+	if proposerId == peerId {
+		// go straight to the 2 state (I already won)
+		wg.StateIdx = 2
+	}
+	return wg
 }
 
 func (w *WordGame) ComposeStateUI() string {

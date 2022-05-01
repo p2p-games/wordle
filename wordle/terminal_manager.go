@@ -26,9 +26,3 @@ func (t *TerminalManager) launchStdinReader(game *WordGame) {
 	input, _ := reader.ReadString('\n')
 	game.NewStdinInput(input)
 }
-
-/*
-func (t *TerminalManager) () {
-
-}
-*/

@@ -53,7 +53,7 @@ func TestStateTransition(t *testing.T) {
 	word := &model.Word{Chars: chars}
 	require.NoError(err)
 
-	wordGame := NewWordGame(word, guessMsgC)
+	wordGame := NewWordGame("peerID1", "peerID2", word, guessMsgC)
 
 	t.Log(wordGame.ComposeStateUI())
 
@@ -106,6 +106,9 @@ func TestStateTransition(t *testing.T) {
 	// try to see if it was success
 	guessed := wordGame.WasGuessed()
 	require.Equal(guessed, true)
+
+	wordGame2 := NewWordGame("peerID1", "peerID1", word, guessMsgC)
+	require.Equal(2, wordGame2.StateIdx)
 
 	close(guessMsgC)
 	cancel()
