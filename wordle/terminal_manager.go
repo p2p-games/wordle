@@ -36,7 +36,7 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 	stateBox := tview.NewTextView()
 	stateBox.SetDynamicColors(true)
 	stateBox.SetBorder(true)
-	stateBox.SetTitle(fmt.Sprintf("P2P Wordle"))
+	stateBox.SetTitle("P2P Wordle")
 
 	// text views are io.Writers, but they don't automatically refresh.
 	// this sets a change handler to force the app to redraw when we get
@@ -107,17 +107,21 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 	}
 }
 
-func (ui *TerminalManager) Run() error {
+func (ui *TerminalManager) Run(initialized *bool) error {
 	go ui.handleEvents()
 	defer ui.end()
 
+	go func() {
+		// mark as initialized after ~200 milliseconds
+		time.Sleep(200 * time.Millisecond)
+		*initialized = true
+	}()
 	err := ui.app.Run()
 	if err != nil {
 		return err
 	}
-	ui.displayStateString(ui.Game.ComposeStateUI())
-	return nil
 
+	return nil
 }
 
 // end signals the event loop to exit gracefully
@@ -125,50 +129,35 @@ func (ui *TerminalManager) end() {
 	ui.doneCh <- struct{}{}
 }
 
-func (ui *TerminalManager) displayStateString(s string) {
+func (ui *TerminalManager) RefreshWordleState() {
+	stateB := ui.stateBox.(*tview.TextView)
+	stateB.Clear()
+	s := ui.Game.ComposeStateUI()
 	fmt.Fprintf(ui.stateBox, "%s\n", s)
 }
 
-func (ui *TerminalManager) displayStateStatus() {
-	s := ui.Game.ComposeStateUI()
-	ui.displayStateString(s)
-}
-
-func (ui *TerminalManager) displayDebugString(s string) {
-	stateB := ui.stateBox.(*tview.TextView)
-	stateB.Clear()
+func (ui *TerminalManager) AddDebugMsg(s string) {
 	fmt.Fprintf(ui.debugBox, "%s\n", s)
 }
 
-func (ui *TerminalManager) AddDebugItem(s string) {
-	ui.displayDebugString(s)
-}
-
 func (ui *TerminalManager) handleEvents() {
-	peerRefreshTicker := time.NewTicker(time.Second)
-	defer peerRefreshTicker.Stop()
-
+	ui.RefreshWordleState()
 	for {
-		ui.displayStateStatus()
 		select {
 		case input := <-ui.inputCh:
 			switch ui.Game.StateIdx {
 			case 0:
-				ui.AddDebugItem(fmt.Sprintf("Your next proposed word: %s", input))
+				ui.AddDebugMsg(fmt.Sprintf("Your next proposed word: %s", input))
 			case 1:
-				ui.AddDebugItem(fmt.Sprintf("Last guess: %s (freezes are expected if no peers connected)", input))
+				ui.AddDebugMsg(fmt.Sprintf("Last guess: %s (freezes are expected if no peers connected)", input))
 			default:
 				continue
 			}
 			// when the user types in a line, publish it to the chat room and print to the message window
 			err := ui.Game.NewStdinInput(input)
 			if err != nil {
-				ui.AddDebugItem(fmt.Sprintf("publish error: %s", err))
+				ui.AddDebugMsg(fmt.Sprintf("publish error: %s", err))
 			}
-
-		case others := <-ui.OthersGuessC:
-			ui.AddDebugItem(fmt.Sprintln("new gueess from someone", others))
-			// when we receive a message from the chat room, print it to the message window
 
 		case <-ui.ctx.Done():
 			fmt.Println("context done")
@@ -176,8 +165,8 @@ func (ui *TerminalManager) handleEvents() {
 
 		case <-ui.doneCh:
 			fmt.Println("channel done")
-
 			return
 		}
+		ui.RefreshWordleState()
 	}
 }

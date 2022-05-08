@@ -85,7 +85,7 @@ func ComposeWordleVisualWord(word string, target *model.Word) string {
 
 		switch charStatus {
 		case 0: // not in the word
-			compWord += composeCharWithColor(c[i], "")
+			compWord += composeCharWithColor(c[i], "white")
 		case 1: // in the word but on wrong possition
 			compWord += composeCharWithColor(c[i], Yellow)
 		case 2: // bingo
@@ -93,7 +93,7 @@ func ComposeWordleVisualWord(word string, target *model.Word) string {
 		}
 
 	}
-	return compWord
+	return compWord + "[white]"
 }
 
 // compose the character over the color and reset the terminal color
