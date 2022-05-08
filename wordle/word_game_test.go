@@ -11,7 +11,7 @@ import (
 
 func TestStateTransition(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-
+	defer cancel()
 	require := require.New(t)
 	salts := []string{"a", "b", "c", "d", "e"}
 	target := &model.Word{
@@ -43,7 +43,8 @@ func TestStateTransition(t *testing.T) {
 	go func() {
 		for {
 			select {
-			case _ = <-guessMsgC:
+			case guess := <-guessMsgC:
+				t.Log("guess msg received, guess:" + guess.Guess + " | proposal:" + guess.Proposal)
 			case <-ctx.Done():
 				return
 			}
