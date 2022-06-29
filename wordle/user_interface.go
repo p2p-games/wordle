@@ -2,19 +2,19 @@ package wordle
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/p2p-games/wordle/model"
 )
 
-var MinWordLen int = 3
-var MaxWordLen int = 25
-var MaxApptemps int = 5
+const (
+	MinWordLen int = 3
+	MaxWordLen int = 25
+	MaxApptemps int = 5
+)
 
 type WordleUI struct {
-	ctx context.Context
-
-	PeerId string
 
 	WordleServ  *Service
 	CurrentGame *WordGame
@@ -25,11 +25,8 @@ type WordleUI struct {
 	tm            *TerminalManager
 }
 
-func NewWordleUI(ctx context.Context, wordleServ *Service, peerId string) *WordleUI {
-
+func NewWordleUI(wordleServ *Service) *WordleUI {
 	ui := &WordleUI{
-		ctx:        ctx,
-		PeerId:     peerId,
 		WordleServ: wordleServ,
 	}
 
@@ -44,25 +41,23 @@ func NewWordleUI(ctx context.Context, wordleServ *Service, peerId string) *Wordl
 	return ui
 }
 
-func (w *WordleUI) Run() {
-	var err error
+func (w *WordleUI) Run(ctx context.Context) (err error) {
 	// get the latest header from the server
-	w.CannonicalHeader, err = w.WordleServ.Head(w.ctx)
-
+	w.CannonicalHeader, err = w.WordleServ.Head(ctx)
 	if err != nil {
-		panic("non able to load any header from the datastore, not even genesis??!")
+		return fmt.Errorf("unable to load latest head: %s", err)
 	}
 
 	// generate a guess channel
 	userGuessC := make(chan guess)
 
 	// generate a new game
-	w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, userGuessC)
+	w.CurrentGame = NewWordGame(w.WordleServ.ID(), w.CannonicalHeader.PeerID, w.CannonicalHeader.Proposal, userGuessC)
 
 	// get the channel for incoming headers
-	incomingHeaders, err := w.WordleServ.Guesses(w.ctx)
+	incomingHeaders, err := w.WordleServ.Guesses(ctx)
 	if err != nil {
-		panic("unable to retrieve the channel of headers from the user interface")
+		return fmt.Errorf("unable to get guesses channel: %s", err)
 	}
 	go func() {
 		for {
@@ -70,7 +65,7 @@ func (w *WordleUI) Run() {
 			case userGuess := <-userGuessC:
 				w.tm.AddDebugMsg("about to send new guess")
 				// notify the service of a new User Guess
-				err = w.WordleServ.Guess(w.ctx, userGuess.Guess, userGuess.Proposal)
+				err = w.WordleServ.Guess(ctx, userGuess.Guess, userGuess.Proposal)
 				if err != nil {
 					w.tm.AddDebugMsg("error sending guess" + userGuess.Guess + " - " + err.Error())
 				}
@@ -94,11 +89,11 @@ func (w *WordleUI) Run() {
 					w.CannonicalHeader = recHeader
 					// generate a new one game
 
-					w.CurrentGame = NewWordGame(w.PeerId, w.CannonicalHeader.PeerID, recHeader.Proposal, userGuessC)
+					w.CurrentGame = NewWordGame(w.WordleServ.ID(), w.CannonicalHeader.PeerID, recHeader.Proposal, userGuessC)
 					// refresh the terminal manager
 					w.tm.Game = w.CurrentGame
 				}
-			case <-w.ctx.Done(): // context shutdow
+			case <-ctx.Done(): // context shutdown
 				return
 			}
 
@@ -108,12 +103,9 @@ func (w *WordleUI) Run() {
 	}()
 
 	// generate a terminal manager
-	w.tm = NewTerminalManager(w.ctx, w.CurrentGame)
-	err = w.tm.Run(&w.uiInitialized)
-	if err != nil {
-		panic(err)
-	}
+	w.tm = NewTerminalManager(w.CurrentGame)
 
+	return w.tm.Run(ctx, &w.uiInitialized)
 }
 
 func (w *WordleUI) AddDebugItem(s string) {

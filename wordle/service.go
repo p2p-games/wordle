@@ -107,6 +107,10 @@ func (s *Service) Stop(context.Context) error {
 	return s.topic.Close()
 }
 
+func (s *Service) ID() peer.ID {
+	return s.host.ID()
+}
+
 func (s *Service) Head(ctx context.Context) (*model.Header, error) {
 	return s.store.Head(ctx)
 }
@@ -123,7 +127,7 @@ func (s *Service) Guess(ctx context.Context, guess, proposal string) error {
 		return err
 	}
 
-	head, err = model.NewHeader(head, guess, proposal, s.host.ID().String())
+	head, err = model.NewHeader(head, guess, proposal, s.host.ID())
 	if err != nil {
 		return err
 	}
@@ -209,7 +213,7 @@ func (s *Service) bootstrap(ctx context.Context) {
 	// ensure we discovered some peers to sync from
 	// discovery is done automagically by PubSub
 	// we just wait here until we discover and connect us to at least one peer for now
-	s.ensurePeers(ctx)
+	s.EnsurePeers(ctx)
 
 	headers := s.askPeers(ctx)
 	if len(headers) == 0 {
@@ -254,7 +258,7 @@ Something suspicious is happening. Just don't do anything for now, until we impl
 	close(s.bootsrapped)
 }
 
-func (s *Service) ensurePeers(ctx context.Context) {
+func (s *Service) EnsurePeers(ctx context.Context) {
 	t := time.NewTicker(time.Second)
 	defer t.Stop()
 	for {

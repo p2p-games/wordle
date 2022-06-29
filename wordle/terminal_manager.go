@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	tcell "github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -15,21 +15,17 @@ import (
 // mode. You can quit with Ctrl-C, or by typing "/quit" into the
 // chat prompt.
 type TerminalManager struct {
-	ctx      context.Context
 	Game     *WordGame
 	app      *tview.Application
 	debugBox *tview.TextView
 
 	stateBox     io.Writer
 	inputCh      chan string
-	OthersGuessC chan struct{}
-
-	doneCh chan struct{}
 }
 
 // NewTerminalManager returns a new TerminalManager struct that controls the text UI.
 // It won't actually do anything until you call Run().
-func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
+func NewTerminalManager(game *WordGame) *TerminalManager {
 	app := tview.NewApplication()
 
 	// make a text view to contain our chat messages
@@ -71,7 +67,7 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 
 		// bail if requested
 		if line == "/quit" {
-			app.Stop()
+			close(inputCh)
 			return
 		}
 
@@ -87,46 +83,30 @@ func NewTerminalManager(ctx context.Context, game *WordGame) *TerminalManager {
 		AddItem(debugB, 60, 1, false)
 
 	// flex is a vertical box with the chatPanel on top and the input field at the bottom.
-
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(wordlePannel, 0, 1, false).
 		AddItem(input, 1, 1, true)
 
 	app.SetRoot(flex, true)
-
 	return &TerminalManager{
-		ctx:          ctx,
 		app:          app,
 		Game:         game,
 		stateBox:     stateBox,
 		debugBox:     debugB,
 		inputCh:      inputCh,
-		OthersGuessC: make(chan struct{}, 10),
-		doneCh:       make(chan struct{}, 1),
 	}
 }
 
-func (ui *TerminalManager) Run(initialized *bool) error {
-	go ui.handleEvents()
-	defer ui.end()
+func (ui *TerminalManager) Run(ctx context.Context, initialized *bool) error {
+	go ui.handleEvents(ctx)
 
 	go func() {
 		// mark as initialized after ~200 milliseconds
 		time.Sleep(200 * time.Millisecond)
 		*initialized = true
 	}()
-	err := ui.app.Run()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// end signals the event loop to exit gracefully
-func (ui *TerminalManager) end() {
-	ui.doneCh <- struct{}{}
+	return ui.app.Run()
 }
 
 func (ui *TerminalManager) RefreshWordleState() {
@@ -140,11 +120,16 @@ func (ui *TerminalManager) AddDebugMsg(s string) {
 	fmt.Fprintf(ui.debugBox, "%s\n", s)
 }
 
-func (ui *TerminalManager) handleEvents() {
-	ui.RefreshWordleState()
+func (ui *TerminalManager) handleEvents(ctx context.Context) {
+	defer ui.app.Stop()
 	for {
+		ui.RefreshWordleState()
 		select {
-		case input := <-ui.inputCh:
+		case input, ok := <-ui.inputCh:
+			if !ok {
+				return
+			}
+
 			switch ui.Game.StateIdx {
 			case 0:
 				ui.AddDebugMsg(fmt.Sprintf("Your next proposed word: %s", input))
@@ -158,15 +143,8 @@ func (ui *TerminalManager) handleEvents() {
 			if err != nil {
 				ui.AddDebugMsg(fmt.Sprintf("publish error: %s", err))
 			}
-
-		case <-ui.ctx.Done():
-			fmt.Println("context done")
-			return
-
-		case <-ui.doneCh:
-			fmt.Println("channel done")
+		case <-ctx.Done():
 			return
 		}
-		ui.RefreshWordleState()
 	}
 }
