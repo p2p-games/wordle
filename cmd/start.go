@@ -47,8 +47,11 @@ Options passed on start override configuration options only on start and are not
 				return err
 			}
 
-			ui := wordle.NewWordleUI(ctx, nd.Wordle, nd.Host.ID().String())
-			ui.Run()
+			ui := wordle.NewWordleUI(nd.Wordle)
+			err = ui.Run(ctx)
+			if err != nil {
+				return err
+			}
 
 			go func() {
 				hch, _ := nd.Wordle.Guesses(ctx)

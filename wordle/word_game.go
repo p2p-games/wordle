@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/p2p-games/wordle/model"
 	"github.com/pkg/errors"
 )
@@ -11,7 +12,7 @@ import (
 const maxAttempts int = 5
 
 type WordGame struct {
-	PeerId string
+	PeerId peer.ID
 
 	// to verify if the guess is correct
 	Target *model.Word
@@ -32,7 +33,7 @@ type guess struct {
 }
 
 // generate new game session
-func NewWordGame(peerId string, proposerId string, target *model.Word, guessC chan guess) *WordGame {
+func NewWordGame(peerId, proposerId peer.ID, target *model.Word, guessC chan guess) *WordGame {
 	salts := GetSaltsFromWord(target)
 	wg := &WordGame{
 		PeerId:         peerId,

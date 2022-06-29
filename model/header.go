@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multihash"
 )
 
@@ -18,7 +19,7 @@ type Header struct {
 	Guess    *Word
 	Proposal *Word
 
-	PeerID string
+	PeerID peer.ID
 }
 
 func (h *Header) Hash() (multihash.Multihash, error) {
@@ -45,7 +46,7 @@ type Char struct {
 	Hash string
 }
 
-func NewHeader(last *Header, guess, proposal, peerID string) (*Header, error) {
+func NewHeader(last *Header, guess, proposal string, peerID peer.ID) (*Header, error) {
 	pSalt := make([]string, 0, len(proposal))
 	for i := 0; i < len(proposal); i++ {
 		pSalt = append(pSalt, RandomString(30))

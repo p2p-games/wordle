@@ -7,12 +7,14 @@ import (
 	"strconv"
 
 	"github.com/ipfs/go-datastore"
-
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/p2p-games/wordle/model"
 )
 
-// use topic name as genesis
-var genesis, _ = model.NewHeader(&model.Header{Proposal: &model.Word{}}, "", topic, "")
+var (
+	genID, _  = peer.Decode("12D3KooWHMvCQ5qHKqbGJriDYJkQBpMfJzxnNxCfe3U9SGEfh2xo")
+	genesis, _ = model.NewHeader(&model.Header{Proposal: &model.Word{}}, "", topic, genID)
+)
 
 type Store struct {
 	ds datastore.Batching
